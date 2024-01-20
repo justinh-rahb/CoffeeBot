@@ -1,14 +1,13 @@
 from threading import Timer
 import os
 import time
-import sys
+import http.server
+import socketserver
+
 import cv2
 import numpy as np
 import requests
 from PIL import Image
-if 'http.server' not in sys.modules:
-    import http.server
-    import socketserver
 
 # import settings
 # import send_email
