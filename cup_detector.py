@@ -77,7 +77,7 @@ def send_webhook(image):
                 self.wfile.write(f.read())
 
     def run():
-        server = socketserver.TCPServer(("", 0), SimpleHTTPRequestHandler)
+        server = socketserver.TCPServer(("", 8080), SimpleHTTPRequestHandler)
         print("Serving image at http://localhost:%s/" % server.server_address[1])
         server.serve_forever()
 
