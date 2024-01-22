@@ -1,4 +1,6 @@
+import os
 import time
+import wget
 
 from decouple import config
 import cv2
@@ -12,6 +14,23 @@ WEBHOOK_URL = config('WEBHOOK_URL')
 FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int)
 DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
 MESSAGE = config('MESSAGE', default='Coffee cup left unattended! Please remove it from the coffee machine before it gets cold :)')
+
+
+# Function to download YOLO files if not present
+def download_yolo_files():
+    files = [
+        ("https://pjreddie.com/media/files/yolov3.weights", "yolov3.weights"),
+        ("https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg", "yolov3.cfg"),
+        ("https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names", "coco.names"),
+    ]
+    for url, file in files:
+        if not os.path.exists(file):
+            print(f"Downloading {file}...")
+            wget.download(url, file)
+
+
+# Check and download YOLO model files
+download_yolo_files()
 
 # Load YOLO
 net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
