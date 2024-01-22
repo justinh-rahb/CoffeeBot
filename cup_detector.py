@@ -1,10 +1,17 @@
 import time
 
+from decouple import config
 import cv2
 import numpy as np
 import requests
 from PIL import Image
 
+
+# Environment variables
+WEBHOOK_URL = config('WEBHOOK_URL')
+FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int)
+DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
+MESSAGE = config('MESSAGE', default='Coffee cup left unattended! Please remove it from the coffee machine before it gets cold :)')
 
 # Load YOLO
 net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
@@ -56,20 +63,19 @@ def detect_cup(frame):
 
 
 def send_webhook():
-    url = "https://your-google-chat-webhook-url"  # Make sure to replace this with your actual webhook URL
     headers = {
         "Content-Type": "application/json; charset=UTF-8"
     }
     data = {
-        "text": "Coffee cup left unattended! Please remove it from the coffee machine :)"
+        "text": NOTIFICATION_MESSAGE  # Use the loaded environment variable
     }
     
-    response = requests.post(url, headers=headers, json=data)
+    response = requests.post(WEBHOOK_URL, headers=headers, json=data)  # Use the loaded environment variable
     print("Webhook sent, response:", response.text)
 
 
 start_time = None
-frame_skip = 5
+frame_skip = FRAME_SKIP
 frame_count = 0
 
 try:
@@ -82,7 +88,7 @@ try:
             if detect_cup(frame):
                 if start_time is None:
                     start_time = time.time()
-                elif time.time() - start_time > 300:
+                elif time.time() - start_time > DETECTION_TIME:
                     image = Image.fromarray(frame)
                     send_webhook()
                     start_time = None
