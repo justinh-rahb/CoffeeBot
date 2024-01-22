@@ -67,7 +67,7 @@ def send_webhook():
         "Content-Type": "application/json; charset=UTF-8"
     }
     data = {
-        "text": NOTIFICATION_MESSAGE  # Use the loaded environment variable
+        "text": MESSAGE  # Use the loaded environment variable
     }
     
     response = requests.post(WEBHOOK_URL, headers=headers, json=data)  # Use the loaded environment variable
