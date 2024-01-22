@@ -1,22 +1,15 @@
-from threading import Timer
-import os
 import time
-import http.server
-import socketserver
 
 import cv2
 import numpy as np
 import requests
-from PIL import Image
-
-# import settings
-# import send_email
 
 
 # Load YOLO
 net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
 layer_names = net.getLayerNames()
-output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+output_layers_indices = net.getUnconnectedOutLayers().flatten()
+output_layers = [layer_names[i - 1] for i in output_layers_indices]
 classes = []
 with open("coco.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
@@ -61,55 +54,18 @@ def detect_cup(frame):
     return len(indexes) > 0
 
 
-def send_webhook(image):
-    url = "https://your-google-chat-webhook-url"
-    temp_file_path = f'/tmp/cup_{int(time.time())}.jpg'
-    image.save(temp_file_path)
+def send_webhook():
+    url = "https://your-google-chat-webhook-url"  # Make sure to replace this with your actual webhook URL
+    headers = {
+        "Content-Type": "application/json; charset=UTF-8"
+    }
+    data = {
+        "text": "Coffee cup left unattended! Please remove it from the coffee machine :)"
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    print("Webhook sent, response:", response.text)
 
-    # Start a simple HTTP server to serve the image
-    class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.send_header("Content-type", "image/jpeg")
-            self.end_headers()
-            with open(temp_file_path, 'rb') as f:
-                self.wfile.write(f.read())
-
-    def run():
-        server = socketserver.TCPServer(("", 8080), SimpleHTTPRequestHandler)
-        print("Serving image at http://localhost:%s/" % server.server_address[1])
-        server.serve_forever()
-
-    # Start the server in a separate thread and wait for it to start before sending webhook
-    t = Timer(0.5, run)
-    t.start()
-    time.sleep(0.2)  # Wait for the server to start
-
-    payload = {"image_url": f"http://localhost:{run.server_address[1]}/cup_{int(time.time())}.jpg"}
-    response = requests.post(url, json=payload)
-
-    # Stop the HTTP server
-    run.shutdown()
-
-    os.remove(temp_file_path)  # Remove the image from local storage
-
-
-# def send_email_notification(image):
-#     # Load your email settings
-#     with open("email_settings.txt", "r") as f:
-#         lines = [line.strip() for line in f.readlines()]
-#
-#     from_email = lines[0]
-#     to_emails = lines[1].split(",")
-#     subject = lines[2]
-#     content = lines[3]
-#     sendgrid_api_key = lines[4]
-
-#     # Create a list of files to be attached
-#     files = [settings.template_path, settings.logo_path]  # Replace these paths with your actual paths
-
-#     # Call the send_email function from send_email.py
-#     send_email.send_email(sendgrid_api_key, from_email, to_emails, subject, content, files)
 
 start_time = None
 frame_skip = 5
@@ -127,8 +83,7 @@ try:
                     start_time = time.time()
                 elif time.time() - start_time > 300:
                     image = Image.fromarray(frame)
-                    send_webhook(image)
-                    # send_email_notification(image)
+                    send_webhook()
                     start_time = None
             else:
                 start_time = None
@@ -136,4 +91,3 @@ try:
         time.sleep(1)
 finally:
     cap.release()
-    cv2.destroyAllWindows()

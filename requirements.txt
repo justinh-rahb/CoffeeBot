@@ -1,5 +1,3 @@
 opencv-python-headless
 numpy
 requests
-pillow
-sendgrid
