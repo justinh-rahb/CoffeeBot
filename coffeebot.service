@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=pi
 WorkingDirectory=/opt/CoffeeBot
-ExecStart=/usr/bin/python3 /opt/CoffeeBot/cup_detector.py
+ExecStart=/usr/bin/python3 /opt/CoffeeBot/main.py
 Restart=always
 Environment="PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 EnvironmentFile=/opt/CoffeeBot/.env

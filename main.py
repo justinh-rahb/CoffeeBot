@@ -10,10 +10,10 @@ from PIL import Image
 
 
 # Environment variables
-WEBHOOK_URL = config('WEBHOOK_URL')
-FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int)
+FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int)
 DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
 MESSAGE = config('MESSAGE', default='Coffee cup left unattended! Please remove it from the coffee machine before it gets cold :)')
+WEBHOOK_URL = config('WEBHOOK_URL')
 
 
 # Function to download YOLO files if not present
@@ -86,10 +86,10 @@ def send_webhook():
         "Content-Type": "application/json; charset=UTF-8"
     }
     data = {
-        "text": MESSAGE  # Use the loaded environment variable
+        "text": MESSAGE
     }
     
-    response = requests.post(WEBHOOK_URL, headers=headers, json=data)  # Use the loaded environment variable
+    response = requests.post(WEBHOOK_URL, headers=headers, json=data)
     print("Webhook sent, response:", response.text)
 
 
