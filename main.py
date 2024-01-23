@@ -56,7 +56,7 @@ cap = cv2.VideoCapture(0)
 
 
 def detect_cup(frame):
-    """Detect a coffee cup in the given frame."""
+    """Detect a coffee cup in a frame."""
     # Get the shape of the frame (height, width, and number of color channels)
     height, width, channels = frame.shape
     # Prepare the frame for input into the neural network
@@ -65,7 +65,10 @@ def detect_cup(frame):
     # Forward pass through the network and get the output from the specified layers (output_layers)
     outs = NET.forward(output_layers)
 
-    detections = []
+    # Initialize empty lists for storing class IDs, confidence scores, and bounding boxes
+    class_ids = []
+    confidences = []
+    boxes = []
 
     for out in outs:
         for detection in out:
