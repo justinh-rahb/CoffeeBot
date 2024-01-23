@@ -36,26 +36,6 @@ def download_yolo_files():
             wget.download(url, file)
 
 
-# Check and download YOLO model files
-download_yolo_files()
-
-# Load YOLO
-NET = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-# Get a list containing the names of all layers in the network
-layer_names = NET.getLayerNames()
-# Get a 1D array with the indices of output layers
-output_layers_indices = NET.getUnconnectedOutLayers().flatten()
-# Extract the names of output layers based on their indices
-output_layers = [layer_names[i - 1] for i in output_layers_indices]
-# Initialize an empty list for storing class labels
-classes = []
-with open("coco.names", "r", encoding="utf-8") as f:
-    classes = [line.strip() for line in f.readlines()]
-
-# Initialize webcam
-cap = cv2.VideoCapture(0)
-
-
 def detect_object(frame):
     """Detect a given object in a frame."""
     # Get the shape of the frame (height, width, and number of color channels)
@@ -130,11 +110,30 @@ def send_webhook():
     print("Webhook sent, response:", response.text)
 
 
+# Check and download YOLO model files
+download_yolo_files()
+
+# Load YOLO
+NET = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+# Get a list containing the names of all layers in the network
+layer_names = NET.getLayerNames()
+# Get a 1D array with the indices of output layers
+output_layers_indices = NET.getUnconnectedOutLayers().flatten()
+# Extract the names of output layers based on their indices
+output_layers = [layer_names[i - 1] for i in output_layers_indices]
+# Initialize an empty list for storing class labels
+classes = []
+with open("coco.names", "r", encoding="utf-8") as f:
+    classes = [line.strip() for line in f.readlines()]
+
 START_TIME = None
 FRAME_COUNT = 0
 frame_skip = FRAME_SKIP
 
 try:
+    # Initialize webcam
+    cap = cv2.VideoCapture(0)
+
     while True:
         # Capture the next frame from the video stream and store it in a variable
         ret, frame = cap.read()
