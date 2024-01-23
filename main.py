@@ -94,24 +94,18 @@ def detect_cup(frame):
                 y = int(center_y - h / 2)
                 # Save the calculated bounding box coordinates, confidence value, and class ID
                 # corresponding to the current detection as a dictionary in the detections list
-                detections.append({
-                    "x": x, 
-                    "y": y, 
-                    "w": w, 
-                    "h": h, 
-                    "confidence": float(confidence), 
-                    "class_id": class_id
-                })
-
+                boxes.append([x, y, w, h])
+                confidences.append(float(confidence))
+                class_ids.append(class_id)
 
     # Perform Non-Maximum Suppression (NMS) on the bounding boxes based on their confidence scores
     # and spatial overlap to filter out overlapping detections with lower confidence
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-    for i, b in enumerate(boxes):
+    for i in range(len(boxes)):
         # Check if a bounding box is among those selected by the NMS algorithm
         if i in indexes:
             # Extract the coordinates of the current bounding box from the list
-            x, y, w, h = b
+            x, y, w, h = boxes[i]
             # Format a label containing the class name and confidence score of the current detection
             label = "{}: {:.2f}%".format(classes[class_ids[i]], confidences[i] * 100)
             # Draw the bounding box on the frame using its coordinates
@@ -131,7 +125,7 @@ def send_webhook():
         "text": MESSAGE
     }
 
-    response = requests.post(WEBHOOK_URL, headers=headers, json=data, timeout=10)
+    response = requests.post(WEBHOOK_URL, headers=headers, json=data)
     print("Webhook sent, response:", response.text)
 
 
@@ -145,6 +139,7 @@ try:
         ret, frame = cap.read()
         if not ret:
             break   # Exit the loop if no more frames are available
+
         # Process every n-th frame (frame_skip) to reduce processing load
         if FRAME_COUNT % frame_skip == 0:
             if detect_cup(frame):
@@ -160,7 +155,7 @@ try:
             else:
                 # If no "cup" was detected, reset the START_TIME variable
                 START_TIME = None
-            FRAME_COUNT += 1   # Increment the frame counter
+        FRAME_COUNT += 1   # Increment the frame counter
         time.sleep(1)
 finally:
     cap.release()
