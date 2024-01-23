@@ -102,11 +102,11 @@ def detect_object(frame):
     # Perform Non-Maximum Suppression (NMS) on the bounding boxes based on their confidence scores
     # and spatial overlap to filter out overlapping detections with lower confidence
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-    for i in range(len(boxes)):
+    for i, b in enumerate(boxes):
         # Check if a bounding box is among those selected by the NMS algorithm
         if i in indexes:
             # Extract the coordinates of the current bounding box from the list
-            x, y, w, h = boxes[i]
+            x, y, w, h = b
             # Format a label containing the class name and confidence score of the current detection
             label = "{}: {:.2f}%".format(classes[class_ids[i]], confidences[i] * 100)
             # Draw the bounding box on the frame using its coordinates
