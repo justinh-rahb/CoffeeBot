@@ -13,17 +13,19 @@ from PIL import Image
 
 # Environment variables
 OBJECT = config('OBJECT', default='cup')
-FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int)
-DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
+MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float, min=0.2, max=0.9)
+FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int, min=1)
+DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int, min=1)
 MESSAGE = config(
     'MESSAGE',
     default='Coffee cup left unattended! Please remove it from the coffee machine :)'
 )
 WEBHOOK_URL = config('WEBHOOK_URL')
+START_TIME = None
+FRAME_COUNT = 0
 
 
-# Function to download YOLO files if not present
-def download_yolo_files():
+def download_yolo():
     """Download the YOLO model files if they are not present."""
     files = [
         ("https://pjreddie.com/media/files/yolov3.weights", "yolov3.weights"),
@@ -60,7 +62,7 @@ def detect_object(frame):
             # Extract the confidence value corresponding to the class with the highest confidence
             confidence = scores[class_id]
             # Filter out detections that do not meet minimum confidence threshold or not of interest
-            if confidence > 0.5 and classes[class_id] == OBJECT:
+            if confidence > MIN_CONFIDENCE and classes[class_id] == OBJECT:
                 # Calculate the coordinates of the bounding box's center by scaling the
                 # relative coordinates provided by the model to the frame dimensions
                 center_x = int(detection[0] * width)
@@ -81,7 +83,7 @@ def detect_object(frame):
 
     # Perform Non-Maximum Suppression (NMS) on the bounding boxes based on their confidence scores
     # and spatial overlap to filter out overlapping detections with lower confidence
-    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, MIN_CONFIDENCE, MIN_CONFIDENCE - 0.1)
     for i, b in enumerate(boxes):
         # Check if a bounding box is among those selected by the NMS algorithm
         if i in indexes:
@@ -98,7 +100,7 @@ def detect_object(frame):
 
 
 def send_webhook():
-    """Send a Google Chat webhook."""
+    """Send a webhook request."""
     headers = {
         "Content-Type": "application/json; charset=UTF-8"
     }
@@ -111,7 +113,7 @@ def send_webhook():
 
 
 # Check and download YOLO model files
-download_yolo_files()
+download_yolo()
 
 # Load YOLO
 NET = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
@@ -126,10 +128,6 @@ classes = []
 with open("coco.names", "r", encoding="utf-8") as f:
     classes = [line.strip() for line in f.readlines()]
 
-START_TIME = None
-FRAME_COUNT = 0
-frame_skip = FRAME_SKIP
-
 try:
     # Initialize webcam
     cap = cv2.VideoCapture(0)
@@ -141,7 +139,7 @@ try:
             break   # Exit the loop if no more frames are available
 
         # Process every n-th frame (frame_skip) to reduce processing load
-        if FRAME_COUNT % frame_skip == 0:
+        if FRAME_COUNT % FRAME_SKIP == 0:
             if detect_object(frame):
                 if START_TIME is None:
                     # Record the time when the first OBJECT was detected
