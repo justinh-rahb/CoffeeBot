@@ -48,7 +48,7 @@ output_layers_indices = NET.getUnconnectedOutLayers().flatten()
 output_layers = [layer_names[i - 1] for i in output_layers_indices]
 # Initialize an empty list for storing class labels
 classes = []
-with open("coco.names", "r") as f:
+with open("coco.names", "r", encoding="utf-8") as f:
     classes = [line.strip() for line in f.readlines()]
 
 # Initialize webcam
