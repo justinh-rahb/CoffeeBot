@@ -106,7 +106,7 @@ def send_webhook():
         "text": MESSAGE
     }
 
-    response = requests.post(WEBHOOK_URL, headers=headers, json=data)
+    response = requests.post(WEBHOOK_URL, headers=headers, json=data, timeout=10)
     print("Webhook sent, response:", response.text)
 
 
