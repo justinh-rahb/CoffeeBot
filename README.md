@@ -1,15 +1,15 @@
-# CoffeeBot
+# ☕️ CoffeeBot 🤖
 
-This is a bot, that watches the pot, and reminds you if you forgot.
+This is a bot 🤖, that watches the pot 🫖, and reminds you if you forgot 🤷‍♂️.
 
 ## Requirements
 
-* Python 3.6 or higher
-* Webcam
-* Computer (even a potato should do)
-* Coffee machine
-* Coffee cup
-* Propensity to forget your cup at the coffee machine
+* Python 3.6 or higher 🐍
+* Webcam 📷
+* Computer (even a potato 🥔 with 4GB RAM should do, as long as it runs Linux 🐧)
+* Coffee machine 🫖
+* Coffee cup ☕️
+* Propensity to forget your cup at the coffee machine 🤔
 
 ## Installation
 
@@ -22,4 +22,8 @@ This is a bot, that watches the pot, and reminds you if you forgot.
 7. Reload the systemd daemon with `sudo systemctl daemon-reload`
 8. Launch the bot with `sudo systemctl start coffeebot.service`
 
-That's it! Your coffee machine monitoring system should be up and running, so your coworkers won't have to remind you to get your cup anymore, and you can enjoy your coffee while it's still hot.
+## Never Lose Your Coffee Again!
+Your coffee machine monitoring system should be up and running, so your co-workers won't have to remind you to get your cup anymore, and you can enjoy your coffee while it's still hot.
+
+## License
+This project is open sourced under the MIT license. See the [LICENSE](LICENSE) file for more info.
