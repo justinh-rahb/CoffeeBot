@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Detect a coffee cup in a video stream from a webcam."""
+"""Detect an object in a video stream from a webcam."""
 import os
 import time
 import wget
@@ -12,6 +12,7 @@ from PIL import Image
 
 
 # Environment variables
+OBJECT = config('OBJECT', default='cup')
 FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int)
 DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
 MESSAGE = config(
@@ -55,8 +56,8 @@ with open("coco.names", "r", encoding="utf-8") as f:
 cap = cv2.VideoCapture(0)
 
 
-def detect_cup(frame):
-    """Detect a coffee cup in a frame."""
+def detect_object(frame):
+    """Detect a given object in a frame."""
     # Get the shape of the frame (height, width, and number of color channels)
     height, width, channels = frame.shape
     # Prepare the frame for input into the neural network
@@ -79,7 +80,7 @@ def detect_cup(frame):
             # Extract the confidence value corresponding to the class with the highest confidence
             confidence = scores[class_id]
             # Filter out detections that do not meet minimum confidence threshold or not of interest
-            if confidence > 0.5 and classes[class_id] == "cup":
+            if confidence > 0.5 and classes[class_id] == OBJECT:
                 # Calculate the coordinates of the bounding box's center by scaling the
                 # relative coordinates provided by the model to the frame dimensions
                 center_x = int(detection[0] * width)
@@ -142,9 +143,9 @@ try:
 
         # Process every n-th frame (frame_skip) to reduce processing load
         if FRAME_COUNT % frame_skip == 0:
-            if detect_cup(frame):
+            if detect_object(frame):
                 if START_TIME is None:
-                    # Record the time when the first "cup" was detected
+                    # Record the time when the first OBJECT was detected
                     START_TIME = time.time()
                 # Check if (DETECTION_TIME) has passed since the first detection
                 elif time.time() - START_TIME > DETECTION_TIME:
@@ -153,7 +154,7 @@ try:
                     send_webhook()
                     START_TIME = None   # Reset the START_TIME variable
             else:
-                # If no "cup" was detected, reset the START_TIME variable
+                # If no OBJECT was detected, reset the START_TIME variable
                 START_TIME = None
         FRAME_COUNT += 1   # Increment the frame counter
         time.sleep(1)
