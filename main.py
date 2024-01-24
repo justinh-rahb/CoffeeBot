@@ -126,6 +126,11 @@ def start_server(port=8080, directory='/tmp/coffeebot'):
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
 
+# Copy the latest index.html file to the SAVE_DIR directory
+with open('index.html', 'rb') as f:
+    with open(SAVE_DIR + '/index.html', 'wb') as f2:
+        f2.write(f.read())
+
 # Check and download YOLOv3 model files
 download_yolo()
 

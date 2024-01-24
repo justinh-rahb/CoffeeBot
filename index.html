@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeBot - Live View</title>
+    <script>
+        function preloadImage(src, callback) {
+            const img = new Image();
+            img.onload = callback; // Call callback function once the image is loaded
+            img.src = src;
+        }
+
+        function refreshImage(interval) {
+            const image = document.getElementById('liveImage');
+            const newSrc = 'current.jpg?timestamp=' + new Date().getTime();
+
+            // Preload the new image
+            preloadImage(newSrc, function() {
+                // Update the displayed image only after the new image has fully loaded
+                image.src = newSrc;
+            });
+
+            // Clear existing timeout
+            if (window.imageRefreshTimeout) {
+                clearTimeout(window.imageRefreshTimeout);
+                window.imageRefreshTimeout = null;
+            }
+
+            // Set new timeout if interval is not 'never'
+            if (interval !== 'never') {
+                window.imageRefreshTimeout = setTimeout(() => refreshImage(interval), interval);
+            }
+        }
+
+        function onRefreshIntervalChange() {
+            const selectElement = document.getElementById('refreshInterval');
+            const selectedValue = selectElement.value;
+            refreshImage(selectedValue === 'never' ? selectedValue : parseInt(selectedValue, 10));
+        }
+    </script>
+</head>
+<body onload="onRefreshIntervalChange()">
+
+    <h2>CoffeeBot - Live View</h2>
+    <img id="liveImage" src="current.jpg" alt="Live Image" style="width:100%;max-width:640px;">
+    <br>
+    <label for="refreshInterval">Refresh Interval:</label>
+    <select id="refreshInterval" onchange="onRefreshIntervalChange()">
+        <option value="10000" selected>10s</option>
+        <option value="30000">30s</option>
+        <option value="never">Never</option>
+    </select>
+
+</body>
+</html>
