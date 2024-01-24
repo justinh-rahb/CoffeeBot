@@ -1,6 +1,6 @@
 # ☕️ CoffeeBot 🤖
 
-![current](https://github.com/justinh-rahb/CoffeeBot/assets/52832301/aa582551-d8c2-42fc-bd71-74c49aa41dbb)
+<img width="655" alt="Screenshot" src="https://github.com/justinh-rahb/CoffeeBot/assets/52832301/db64049e-795c-4ed1-9700-a9a01152bbed">
 
 This is a bot 🤖, that watches the pot 🫖, and reminds you if you forgot 🤷‍♂️.
 
