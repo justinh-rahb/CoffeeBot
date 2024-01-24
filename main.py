@@ -2,8 +2,10 @@
 """Detect an object in a video stream from a webcam."""
 import os
 import time
-import wget
+import threading
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 
+import wget
 from decouple import config
 import cv2
 import numpy as np
@@ -17,12 +19,12 @@ BOT_MESSAGE = config(
     'BOT_MESSAGE',
     default='Coffee cup left unattended! Please remove it from the coffee machine :)'
 )
-OBJECT = config('OBJECT', default='cup')
-MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float)
-FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int)
-DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
-CAPTURE_DEVICE = config('CAPTURE_DEVICE', default=0, cast=int)
-SAVE_DIR = config('SAVE_DIR', default='/tmp')
+OBJECT = config('OBJECT', default='cup') # The object to detect
+MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float) # Minimum confidence threshold
+FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int) # Process every n-th frame
+DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int) # Time object must be detected for
+CAPTURE_DEVICE = config('CAPTURE_DEVICE', default=0, cast=int) # Capture device, 0 is the default webcam
+SAVE_DIR = config('SAVE_DIR', default='/tmp/coffeebot') # Directory to save images to
 
 
 def detect_object(frame):
@@ -112,6 +114,18 @@ def send_webhook():
     print("Webhook sent, response:", response.text)
 
 
+def start_server(port=8080, directory='/tmp/coffeebot'):
+    """Start a simple HTTP server to serve the current frame."""
+    os.chdir(directory)  # Change working directory to serve files from /tmp
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
+    httpd.serve_forever()
+
+
+# Create the SAVE_DIR directory if it does not exist
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
+
 # Check and download YOLOv3 model files
 download_yolo()
 
@@ -129,6 +143,12 @@ classes = []
 with open("coco.names", "r", encoding="utf-8") as f:
     classes = [line.strip() for line in f.readlines()]
 print("YOLOv3 model loaded.")
+
+# Start the web server in a new thread
+server_thread = threading.Thread(target=start_server, args=(8080,))
+server_thread.daemon = True  # This ensures the thread will close when the main program exits
+server_thread.start()
+print("Web server started on port 8080...")
 
 start_time = None
 frame_count = 0
@@ -171,7 +191,7 @@ try:
                 start_time = None
         frame_count += 1   # Increment the frame counter
         # Save the current frame to a file
-        cv2.imwrite(os.path.join(SAVE_DIR, '/tmp/coffeebot_current.jpg'), frame)
+        cv2.imwrite(os.path.join(SAVE_DIR, '/tmp/coffeebot/current.jpg'), frame)
         time.sleep(1)
 finally:
     cap.release()
