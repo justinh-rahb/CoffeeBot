@@ -19,8 +19,10 @@ BOT_MESSAGE = config(
 )
 OBJECT = config('OBJECT', default='cup')
 MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float)
-FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int)
+FRAME_SKIP = config('FRAME_SKIP', default=5, cast=int)
 DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
+CAPTURE_DEVICE = config('CAPTURE_DEVICE', default=0, cast=int)
+SAVE_DIR = config('SAVE_DIR', default='/tmp')
 
 
 def detect_object(frame):
@@ -114,6 +116,7 @@ def send_webhook():
 download_yolo()
 
 # Load YOLOv3 model files
+print("Loading YOLOv3 model...")
 NET = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
 # Get a list containing the names of all layers in the network
 layer_names = NET.getLayerNames()
@@ -125,6 +128,7 @@ output_layers = [layer_names[i - 1] for i in output_layers_indices]
 classes = []
 with open("coco.names", "r", encoding="utf-8") as f:
     classes = [line.strip() for line in f.readlines()]
+print("YOLOv3 model loaded.")
 
 start_time = None
 frame_count = 0
@@ -132,12 +136,15 @@ frame_count = 0
 # Main loop
 try:
     # Initialize webcam
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(CAPTURE_DEVICE)
+    # write message to console
+    print("Starting CoffeeBot...")
 
     while True:
         # Capture the next frame from the video stream and store it in a variable
         ret, frame = cap.read()
         if not ret:
+            print("No frame available, exiting.")
             break   # Exit the loop if no more frames are available
 
         # Process every n-th frame (frame_skip) to reduce processing load
@@ -148,14 +155,23 @@ try:
                     start_time = time.time()
                 # Check if (DETECTION_TIME) has passed since the first detection
                 elif time.time() - start_time > DETECTION_TIME:
+                    print("Object '" + OBJECT + "' detected at " +
+                          time.strftime("%H:%M:%S", time.localtime(start_time))
+                          + "\nSending webhook...")
                     # Convert the frame to an image object for further processing
                     image = Image.fromarray(frame)
+                    # Send a webhook request
                     send_webhook()
+                    # Save the image to a file
+                    image.save(os.path.join(SAVE_DIR, f"capture_{time.time()}.jpg"))
+                    print(f"Image saved to {SAVE_DIR}/capture_{time.time()}.jpg")
                     start_time = None   # Reset the start_time variable
             else:
                 # If no OBJECT was detected, reset the start_time variable
                 start_time = None
         frame_count += 1   # Increment the frame counter
+        # Save the current frame to a file
+        cv2.imwrite(os.path.join(SAVE_DIR, '/tmp/coffeebot_current.jpg'), frame)
         time.sleep(1)
 finally:
     cap.release()
