@@ -160,7 +160,6 @@ cython_debug/
 #.idea/
 
 .DS_Store
-yolov3.weights
-yolov3.cfg
+yolov3*
 coco.names
 .env

@@ -18,9 +18,9 @@ BOT_MESSAGE = config(
     default='Coffee cup left unattended! Please remove it from the coffee machine :)'
 )
 OBJECT = config('OBJECT', default='cup')
-MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float, min=0.2, max=0.9)
-FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int, min=1)
-DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int, min=1)
+MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float)
+FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int)
+DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int)
 
 
 def detect_object(frame):
