@@ -12,30 +12,15 @@ from PIL import Image
 
 
 # Environment variables
+BOT_WEBHOOK_URL = config('BOT_WEBHOOK_URL') # This must be set, all other variables have defaults
+BOT_MESSAGE = config(
+    'BOT_MESSAGE',
+    default='Coffee cup left unattended! Please remove it from the coffee machine :)'
+)
 OBJECT = config('OBJECT', default='cup')
 MIN_CONFIDENCE = config('MIN_CONFIDENCE', default=0.5, cast=float, min=0.2, max=0.9)
 FRAME_SKIP = config('FRAME_SKIP', default=10, cast=int, min=1)
 DETECTION_TIME = config('DETECTION_TIME', default=300, cast=int, min=1)
-MESSAGE = config(
-    'MESSAGE',
-    default='Coffee cup left unattended! Please remove it from the coffee machine :)'
-)
-WEBHOOK_URL = config('WEBHOOK_URL')
-START_TIME = None
-FRAME_COUNT = 0
-
-
-def download_yolo():
-    """Download the YOLO model files if they are not present."""
-    files = [
-        ("https://pjreddie.com/media/files/yolov3.weights", "yolov3.weights"),
-        ("https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg", "yolov3.cfg"),
-        ("https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names", "coco.names"),
-    ]
-    for url, file in files:
-        if not os.path.exists(file):
-            print(f"Downloading {file}...")
-            wget.download(url, file)
 
 
 def detect_object(frame):
@@ -99,23 +84,36 @@ def detect_object(frame):
     return len(indexes) > 0
 
 
+def download_yolo():
+    """Download the YOLO model files if they are not present."""
+    files = [
+        ("https://pjreddie.com/media/files/yolov3.weights", "yolov3.weights"),
+        ("https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg", "yolov3.cfg"),
+        ("https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names", "coco.names"),
+    ]
+    for url, file in files:
+        if not os.path.exists(file):
+            print(f"Downloading {file}...")
+            wget.download(url, file)
+
+
 def send_webhook():
     """Send a webhook request."""
     headers = {
         "Content-Type": "application/json; charset=UTF-8"
     }
     data = {
-        "text": MESSAGE
+        "text": BOT_MESSAGE
     }
 
-    response = requests.post(WEBHOOK_URL, headers=headers, json=data, timeout=10)
+    response = requests.post(BOT_WEBHOOK_URL, headers=headers, json=data, timeout=10)
     print("Webhook sent, response:", response.text)
 
 
-# Check and download YOLO model files
+# Check and download YOLOv3 model files
 download_yolo()
 
-# Load YOLO
+# Load YOLOv3 model files
 NET = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
 # Get a list containing the names of all layers in the network
 layer_names = NET.getLayerNames()
@@ -128,6 +126,10 @@ classes = []
 with open("coco.names", "r", encoding="utf-8") as f:
     classes = [line.strip() for line in f.readlines()]
 
+start_time = None
+frame_count = 0
+
+# Main loop
 try:
     # Initialize webcam
     cap = cv2.VideoCapture(0)
@@ -139,21 +141,21 @@ try:
             break   # Exit the loop if no more frames are available
 
         # Process every n-th frame (frame_skip) to reduce processing load
-        if FRAME_COUNT % FRAME_SKIP == 0:
+        if frame_count % FRAME_SKIP == 0:
             if detect_object(frame):
-                if START_TIME is None:
+                if start_time is None:
                     # Record the time when the first OBJECT was detected
-                    START_TIME = time.time()
+                    start_time = time.time()
                 # Check if (DETECTION_TIME) has passed since the first detection
-                elif time.time() - START_TIME > DETECTION_TIME:
+                elif time.time() - start_time > DETECTION_TIME:
                     # Convert the frame to an image object for further processing
                     image = Image.fromarray(frame)
                     send_webhook()
-                    START_TIME = None   # Reset the START_TIME variable
+                    start_time = None   # Reset the start_time variable
             else:
-                # If no OBJECT was detected, reset the START_TIME variable
-                START_TIME = None
-        FRAME_COUNT += 1   # Increment the frame counter
+                # If no OBJECT was detected, reset the start_time variable
+                start_time = None
+        frame_count += 1   # Increment the frame counter
         time.sleep(1)
 finally:
     cap.release()
