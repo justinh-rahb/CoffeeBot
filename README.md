@@ -7,6 +7,13 @@
 
 This is a bot 🤖, that watches the pot 🫖, and reminds you if you forgot 🤷‍♂️.
 
+### Table of Contents
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Never Lose Your Coffee Again!](#never-lose-your-coffee-again)
+* [License](#license)
+
 ## Requirements
 
 * Python 3.6 or higher 🐍
@@ -26,6 +33,21 @@ This is a bot 🤖, that watches the pot 🫖, and reminds you if you forgot �
 6. Copy the systemd service file to `/etc/systemd/system` with `sudo cp coffeebot.service /etc/systemd/system`
 7. Reload the systemd daemon with `sudo systemctl daemon-reload`
 8. Launch the bot with `sudo systemctl start coffeebot.service`
+
+## Configuration
+
+The bot is configured via environment variables. You can set them in the `.env` file, or directly in your shell.
+
+| Variable | Description | Default |
+| -------- | ----------- | ------- |
+| BOT_WEBHOOK_URL | webhook URL for the bot to send messages to | none |
+| BOT_MESSAGE | message to send when the object is detected | Coffee cup left unattended! Please remove it from the coffee machine :) |
+| OBJECT | object to detect (see list: [coco.names](https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names)) | cup |
+| MIN_CONFIDENCE | minimum confidence level for object detection | 0.5 |
+| FRAME_SKIP | number of frames to skip before checking for object | 5 |
+| DETECTION_TIME | time in seconds object must be detected before sending message | 300 |
+| CAPTURE_DEVICE | 0 for default webcam, 1 for USB webcam | 0 |
+| SAVE_DIR | directory to save images | /tmp |
 
 ## Never Lose Your Coffee Again!
 Your coffee machine monitoring system should be up and running, so your co-workers won't have to remind you to get your cup anymore, and you can enjoy your coffee while it's still hot.
